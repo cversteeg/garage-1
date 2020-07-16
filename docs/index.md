@@ -27,6 +27,10 @@ and how to implement new MDPs and new algorithms.
    user/pixel_observations
    user/monitor_experiments_with_tensorboard
    user/training_a_policy
+   user/save_load_resume_exp
+   user/reuse_garage_policy
+   user/docker
+   user/ensure_your_experiments_are_reproducible
 
 .. toctree::
    :maxdepth: 2
@@ -39,6 +43,7 @@ and how to implement new MDPs and new algorithms.
    :maxdepth: 2
    :caption: Development Guide
 
+   user/setting_up_your_development_environment
    user/testing
    user/benchmarking
    user/writing_documentation
@@ -54,6 +59,7 @@ and how to implement new MDPs and new algorithms.
    _autoapi/garage/np/index
    _autoapi/garage/plotter/index
    _autoapi/garage/replay_buffer/index
+   _autoapi/garage/sampler/index
    _autoapi/garage/tf/index
    _autoapi/garage/torch/index
 ```

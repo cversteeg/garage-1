@@ -1,4 +1,5 @@
 """Test root level functions in garage."""
+# yapf: disable
 import csv
 import math
 import tempfile
@@ -11,10 +12,16 @@ import pytest
 import tensorflow as tf
 import torch
 
-from garage import _Default, make_optimizer
-from garage import log_multitask_performance, log_performance, TrajectoryBatch
+from garage import (_Default,
+                    log_multitask_performance,
+                    log_performance,
+                    make_optimizer,
+                    TrajectoryBatch)
 from garage.envs import EnvSpec
+
 from tests.fixtures import TfGraphTestCase
+
+# yapf: enable
 
 
 @pytest.mark.serial
@@ -54,7 +61,7 @@ def test_log_performance():
     assert res['test_log_performance/Iteration'] == 7
     assert res['test_log_performance/NumTrajs'] == 4
     assert math.isclose(res['test_log_performance/SuccessRate'], 0.75)
-    assert math.isclose(res['test_log_performance/CompletionRate'], 0.5)
+    assert math.isclose(res['test_log_performance/TerminationRate'], 0.5)
     assert math.isclose(res['test_log_performance/AverageDiscountedReturn'],
                         1.1131040640673113)
     assert math.isclose(res['test_log_performance/AverageReturn'],

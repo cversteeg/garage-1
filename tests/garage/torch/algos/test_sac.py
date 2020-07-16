@@ -15,6 +15,7 @@ from garage.torch import set_gpu_mode
 from garage.torch.algos import SAC
 from garage.torch.policies import TanhGaussianMLPPolicy
 from garage.torch.q_functions import ContinuousMLPQFunction
+
 from tests.fixtures import snapshot_config
 
 
@@ -221,7 +222,7 @@ def test_sac_inverted_double_pendulum():
     # correct.
     assert not torch.allclose(torch.Tensor([1.]), sac._log_alpha.to('cpu'))
     # check that policy is learning beyond predecided threshold
-    assert ret > 85
+    assert ret > 80
 
 
 @pytest.mark.mujoco

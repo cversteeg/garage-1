@@ -2,7 +2,6 @@
 import numpy as np
 
 from garage.np.policies import Policy
-from tests.fixtures.distributions import DummyDistribution
 
 
 class DummyRecurrentPolicy(Policy):
@@ -14,8 +13,8 @@ class DummyRecurrentPolicy(Policy):
     """
 
     def __init__(
-            self,
-            env_spec,
+        self,
+        env_spec,
     ):
         super().__init__(env_spec=env_spec)
         self.params = []
@@ -52,13 +51,3 @@ class DummyRecurrentPolicy(Policy):
 
         """
         return self.param_values
-
-    @property
-    def distribution(self):
-        """Return the distribution.
-
-        Returns:
-            garage.distribution: Policy distribution.
-
-        """
-        return DummyDistribution()

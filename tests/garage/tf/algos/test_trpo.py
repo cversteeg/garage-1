@@ -2,25 +2,27 @@
 This script creates a test that fails when garage.tf.algos.TRPO performance is
 too low.
 """
+# yapf: disable
 import gym
 import pytest
 import tensorflow as tf
 
+# yapf: disable
 from garage.envs import GarageEnv, normalize
-from garage.experiment import deterministic
-from garage.experiment import LocalTFRunner
-from garage.experiment import snapshotter
+from garage.experiment import deterministic, LocalTFRunner, snapshotter
 from garage.np.baselines import LinearFeatureBaseline
 from garage.sampler import LocalSampler
 from garage.tf.algos import TRPO
-from garage.tf.baselines import GaussianCNNBaseline
-from garage.tf.baselines import GaussianMLPBaseline
+from garage.tf.baselines import GaussianCNNBaseline, GaussianMLPBaseline
 from garage.tf.optimizers import FiniteDifferenceHvp
-from garage.tf.policies import CategoricalCNNPolicy
-from garage.tf.policies import CategoricalGRUPolicy
-from garage.tf.policies import CategoricalLSTMPolicy
-from garage.tf.policies import GaussianMLPPolicy
+from garage.tf.policies import (CategoricalCNNPolicy,
+                                CategoricalGRUPolicy,
+                                CategoricalLSTMPolicy,
+                                GaussianMLPPolicy)
+
 from tests.fixtures import snapshot_config, TfGraphTestCase
+
+# yapf: enable
 
 
 class TestTRPO(TfGraphTestCase):
@@ -36,7 +38,7 @@ class TestTRPO(TfGraphTestCase):
         )
         self.baseline = GaussianMLPBaseline(
             env_spec=self.env.spec,
-            regressor_args=dict(hidden_sizes=(32, 32)),
+            hidden_sizes=(32, 32),
         )
 
     @pytest.mark.mujoco_long
@@ -131,7 +133,7 @@ class TestTRPO(TfGraphTestCase):
 
             runner.setup(algo, env, sampler_cls=LocalSampler)
             last_avg_ret = runner.train(n_epochs=10, batch_size=2048)
-            assert last_avg_ret > 80
+            assert last_avg_ret > 64
 
             env.close()
 

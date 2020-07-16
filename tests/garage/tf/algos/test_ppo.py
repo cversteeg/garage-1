@@ -2,23 +2,27 @@
 This script creates a test that fails when garage.tf.algos.PPO performance is
 too low.
 """
+# yapf: disable
 import gym
 import pytest
 import tensorflow as tf
 
+# yapf: disable
 from garage.envs import GarageEnv, normalize
 from garage.experiment import LocalTFRunner
 from garage.np.baselines import LinearFeatureBaseline
 from garage.sampler import LocalSampler
 from garage.tf.algos import PPO
-from garage.tf.baselines import ContinuousMLPBaseline
-from garage.tf.baselines import GaussianMLPBaseline
-from garage.tf.policies import CategoricalMLPPolicy
-from garage.tf.policies import GaussianGRUPolicy
-from garage.tf.policies import GaussianLSTMPolicy
-from garage.tf.policies import GaussianMLPPolicy
+from garage.tf.baselines import ContinuousMLPBaseline, GaussianMLPBaseline
+from garage.tf.policies import (CategoricalMLPPolicy,
+                                GaussianGRUPolicy,
+                                GaussianLSTMPolicy,
+                                GaussianMLPPolicy)
+
 from tests.fixtures import snapshot_config, TfGraphTestCase
 from tests.fixtures.envs.wrappers import ReshapeObservation
+
+# yapf: enable
 
 
 class TestPPO(TfGraphTestCase):
@@ -36,7 +40,7 @@ class TestPPO(TfGraphTestCase):
         self.gru_policy = GaussianGRUPolicy(env_spec=self.env.spec)
         self.baseline = GaussianMLPBaseline(
             env_spec=self.env.spec,
-            regressor_args=dict(hidden_sizes=(32, 32)),
+            hidden_sizes=(32, 32),
         )
 
     @pytest.mark.mujoco
@@ -158,7 +162,7 @@ class TestPPOContinuousBaseline(TfGraphTestCase):
             )
             baseline = ContinuousMLPBaseline(
                 env_spec=env.spec,
-                regressor_args=dict(hidden_sizes=(32, 32)),
+                hidden_sizes=(32, 32),
             )
             algo = PPO(
                 env_spec=env.spec,
@@ -191,7 +195,7 @@ class TestPPOContinuousBaseline(TfGraphTestCase):
             policy = GaussianLSTMPolicy(env_spec=env.spec, )
             baseline = ContinuousMLPBaseline(
                 env_spec=env.spec,
-                regressor_args=dict(hidden_sizes=(32, 32)),
+                hidden_sizes=(32, 32),
             )
             algo = PPO(
                 env_spec=env.spec,
@@ -227,7 +231,7 @@ class TestPPOPendulumLSTM(TfGraphTestCase):
             lstm_policy = GaussianLSTMPolicy(env_spec=env.spec)
             baseline = GaussianMLPBaseline(
                 env_spec=env.spec,
-                regressor_args=dict(hidden_sizes=(32, 32)),
+                hidden_sizes=(32, 32),
             )
             algo = PPO(
                 env_spec=env.spec,
@@ -261,7 +265,7 @@ class TestPPOPendulumGRU(TfGraphTestCase):
             gru_policy = GaussianGRUPolicy(env_spec=env.spec)
             baseline = GaussianMLPBaseline(
                 env_spec=env.spec,
-                regressor_args=dict(hidden_sizes=(32, 32)),
+                hidden_sizes=(32, 32),
             )
             algo = PPO(
                 env_spec=env.spec,

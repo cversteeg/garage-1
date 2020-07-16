@@ -41,28 +41,45 @@ test: build-test
 docs:  ## Build HTML documentation
 docs:
 	@pushd docs && make html && popd
+	@python -c 'import os, webbrowser; webbrowser.open("file://" + os.path.realpath("docs/_build/html/index.html"))'
 
-ci-job-precommit: assert-docker docs
+ci-job-precommit: assert-docker
 	scripts/travisci/check_precommit.sh
 
 ci-job-normal: assert-docker
 	[ ! -f $(MJKEY_PATH) ] || mv $(MJKEY_PATH) $(MJKEY_PATH).bak
 	pytest --cov=garage --cov-report=xml -m \
 	    'not nightly and not huge and not flaky and not large and not mujoco and not mujoco_long' --durations=20
-	bash <(curl -s https://codecov.io/bash)
+	for i in {1..5}; do \
+		bash <(curl -s https://codecov.io/bash --retry 5) -Z && break \
+			|| echo 'Retrying...' && sleep 30 && continue; \
+		exit 1; \
+	done
 
 ci-job-large: assert-docker
 	[ ! -f $(MJKEY_PATH) ] || mv $(MJKEY_PATH) $(MJKEY_PATH).bak
 	pytest --cov=garage --cov-report=xml -m 'large and not flaky' --durations=20
-	bash <(curl -s https://codecov.io/bash)
+	for i in {1..5}; do \
+		bash <(curl -s https://codecov.io/bash --retry 5) -Z && break \
+			|| echo 'Retrying...' && sleep 30 && continue; \
+		exit 1; \
+	done
 
 ci-job-mujoco: assert-docker
 	pytest --cov=garage --cov-report=xml -m 'mujoco and not flaky' --durations=20
-	bash <(curl -s https://codecov.io/bash)
+	for i in {1..5}; do \
+		bash <(curl -s https://codecov.io/bash --retry 5) -Z && break \
+			|| echo 'Retrying...' && sleep 30 && continue; \
+		exit 1; \
+	done
 
 ci-job-mujoco-long: assert-docker
 	pytest --cov=garage --cov-report=xml -m 'mujoco_long and not flaky' --durations=20
-	bash <(curl -s https://codecov.io/bash)
+	for i in {1..5}; do \
+		bash <(curl -s https://codecov.io/bash --retry 5) -Z && break \
+			|| echo 'Retrying...' && sleep 30 && continue; \
+		exit 1; \
+	done
 
 ci-job-nightly: assert-docker
 	pytest -m nightly
@@ -153,6 +170,7 @@ run-ci: ## Run the CI Docker container (only used in TravisCI)
 run-ci: TAG ?= rlworkgroup/garage-ci
 run-ci:
 	docker run \
+		-e CODECOV_TOKEN \
 		-e TRAVIS_BRANCH \
 		-e TRAVIS_PULL_REQUEST \
 		-e TRAVIS_COMMIT_RANGE \
@@ -167,7 +185,7 @@ run-ci:
 run-headless: ## Run the Docker container for headless machines
 run-headless: CONTAINER_NAME ?= ''
 run-headless: user ?= $$USER
-run-headless: build-headless
+run-headless: ensure-data-path-exists build-headless
 	docker run \
 		-it \
 		--rm \
@@ -178,21 +196,22 @@ run-headless: build-headless
 		rlworkgroup/garage-headless ${RUN_CMD}
 
 run-nvidia: ## Run the Docker container for machines with NVIDIA GPUs
-run-nvidia: ## Requires https://github.com/NVIDIA/nvidia-container-runtime and CUDA 10.2
+run-nvidia: ## Requires https://github.com/NVIDIA/nvidia-container-runtime and NVIDIA driver 440+
 run-nvidia: CONTAINER_NAME ?= ''
 run-nvidia: user ?= $$USER
-run-nvidia: build-nvidia
+run-nvidia: GPUS ?= "all"
+run-nvidia: ensure-data-path-exists build-nvidia
 	xhost +local:docker
 	docker run \
 		-it \
 		--rm \
-		--runtime=nvidia \
+		--gpus $(GPUS) \
 		-v /tmp/.X11-unix:/tmp/.X11-unix \
 		-v $(DATA_PATH)/$(CONTAINER_NAME):/home/$(user)/code/garage/data \
 		-e DISPLAY=$(DISPLAY) \
 		-e QT_X11_NO_MITSHM=1 \
 		-e MJKEY="$$(cat $(MJKEY_PATH))" \
-		--name $(CONTAINER_NAME)
+		--name $(CONTAINER_NAME) \
 		${RUN_ARGS} \
 		rlworkgroup/garage-nvidia ${RUN_CMD}
 
@@ -207,6 +226,9 @@ ifndef TRAVIS
 	@echo 'This recipe is only to be run from TravisCI'
 	@exit 1
 endif
+
+ensure-data-path-exists:
+	mkdir -p $(DATA_PATH)/$(CONTAINER_NAME) || { echo "Cannot create directory $(DATA_PATH)/$(CONTAINER_NAME)"; exit 1; }
 
 # Help target
 # See https://marmelab.com/blog/2016/02/29/auto-documented-makefile.html
