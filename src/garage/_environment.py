@@ -35,6 +35,9 @@ class Environment(abc.ABC):
     +-----------------------+-------------------------------------------------+
     | render_modes          | The list of supported render modes              |
     +-----------------------+-------------------------------------------------+
+    | max_episode_steps     | The maximum number of steps (i.e. time          |
+    |                       | limit) of the environment.                      |
+    +-----------------------+-------------------------------------------------+
 
     Make sure your environment is pickle-able:
         Garage pickles the environment via the `cloudpickle` module
@@ -89,6 +92,16 @@ class Environment(abc.ABC):
 
     @property
     @abc.abstractmethod
+    def max_episode_steps(self):
+        """Return the max number of steps allowed of the environment.
+
+        Returns:
+            int: The max number of steps allowed.
+
+        """
+
+    @property
+    @abc.abstractmethod
     def render_modes(self):
         """Return the list of supported render modes.
 
@@ -120,6 +133,10 @@ class Environment(abc.ABC):
         This method will also start a new sequence if called after the
         environment has been constructed and `reset()` has not been called.
         Again, in this case `action` will be ignored.
+
+        If `max_episode_steps` is reached after applying the action and the
+        sequence is not done, `step()` should return a `TimeStep` with
+        `step_type==StepType.TIMEOUT`.
 
         If possible, update the visualization display as well.
 
