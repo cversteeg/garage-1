@@ -61,7 +61,6 @@ class TestTD3(TfGraphTestCase):
                        target_update_tau=0.005,
                        n_train_steps=50,
                        discount=0.99,
-                       smooth_return=False,
                        min_buffer_size=int(1e4),
                        buffer_batch_size=100,
                        policy_weight_decay=0.001,
@@ -72,4 +71,4 @@ class TestTD3(TfGraphTestCase):
 
             runner.setup(algo, env, sampler_cls=LocalSampler)
             last_avg_ret = runner.train(n_epochs=10, batch_size=250)
-            assert last_avg_ret > 300
+            assert last_avg_ret > 200

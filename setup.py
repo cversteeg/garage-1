@@ -45,7 +45,7 @@ EXTRAS['dm_control'] = [
     # find a build dependency (absl-py). Later pip executes the `install`
     # command again and the install succeeds because absl-py has been
     # installed. This is stupid, but harmless.
-    'dm_control==0.0.300771433',
+    'dm_control',
 ]
 
 EXTRAS['bullet'] = ['mpi4py', 'pybullet']
@@ -73,6 +73,7 @@ EXTRAS['dev'] = [
     'sphinx',
     'sphinx-autoapi>=1.4.0',
     'sphinx_rtd_theme',
+    'sphinxcontrib-bibtex',
     'yapf==0.30.0',
 ]  # yapf: disable
 

@@ -29,6 +29,9 @@ To run an example launcher in the container, execute:
 docker run -it --rm rlworkgroup/garage-headless python examples/tf/trpo_cartpole.py
 ```
 
+This will run the latest image available. To use a stable release such as
+v2020.06, use `rlworkgroup/garage-headless:2020.06`.
+
 To run environments using MuJoCo, pass the contents of the MuJoCo key in a
 variable named MJKEY in the same docker-run command using `cat`. For example,
 if your key is at `~/.mujoco/mjkey.txt`, execute:
@@ -57,12 +60,10 @@ docker run \
 This binds a volume between your host path and the path in garage at
 `/home/garage-user/code/garage/data`.
 
----
-**NOTE:**
-Make sure the directory at the host path exists and is writable by the
-current user, otherwise docker will create it with user as root, but the
-garage container won't be able to write to it.
----
+``` note:: Make sure the directory at the host path exists and is writable by
+ the current user, otherwise docker will create it with user as root, but the
+ garage container won't be able to write to it.
+```
 
 ### Build and run the headless image
 
@@ -107,16 +108,17 @@ make run-headless BUILD_ARGS="--build-arg MY_VAR=123" RUN_ARGS="-e MY_VAR=123"
 
 ## NVIDIA image
 
-The garage nvidia images come with CUDA 10.2.
+The garage NVIDIA images come with CUDA 10.2.
 
-### Prerequisites for nvidia image
+### Prerequisites for NVIDIA image
 
 Additional to the prerequisites for the headless image, make sure to have:
 
 - [Install the latest NVIDIA driver](https://tecadmin.net/install-latest-nvidia-drivers-ubuntu/),
   tested on nvidia driver version 440.100. CUDA 10.2 requires a minimum of
-  version 440.33.
-- [Install nvidia-container-toolkit](https://github.com/NVIDIA/nvidia-docker#ubuntu-160418042004-debian-jessiestretchbuster)
+  version 440.33. For older driver versions, see [Using a different driver
+   version](#using-a-different-driver-version)
+- [Install nvidia-container-runtime](https://github.com/NVIDIA/nvidia-container-runtime#installation)
 
 Tested on Ubuntu 18.04 & 20.04.
 
@@ -131,13 +133,21 @@ For example, to execute a launcher file:
 docker run -it --rm rlworkgroup/garage-nvidia python examples/tf/trpo_cartpole.py
 ```
 
-### Build and run the nvidia image
+### Build and run the NVIDIA image
 
 The same rules for the headless image apply here, except that the target name
 is:
 
 ```
 make run-nvidia
+```
+
+This make command builds the NVIDIA image and runs it in a non-headless mode.
+It will not work on headless machines. You can run the NVIDIA in a headless
+state using the following target:
+
+```
+make run-nvidia-headless
 ```
 
 ### Expose GPUs for use
@@ -152,3 +162,21 @@ example:
 ```
 make run-nvidia GPUS="device=0,2"
 ```
+
+### Using a different driver version
+
+The garage-nvidia docker image uses `nvidia/cuda:10.2-runtime-ubuntu18.04` as
+the parent image which requires NVIDIA driver version 440.33+. If you need
+to use garage with a different driver version, you might be able to build the
+garage-nvidia image from scratch using a different parent image using the
+variable `PARENT_IMAGE`.
+
+```
+make run-nvidia PARENT_IMAGE="nvidia/cuda:10.1-runtime-ubuntu18.04"
+```
+
+You can find the required parent images at [NVIDIA CUDA's DockerHub](https://hub.docker.com/r/nvidia/cuda/tags)
+
+----
+
+This page was authored by Angel Ivan Gonzalez ([@gonzaiva](https://github.com/gonzaiva)), with contributions from Gitanshu Sardana ([@gitanshu](https://github.com/gitanshu>)).

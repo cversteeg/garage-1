@@ -14,7 +14,7 @@ MJKEY_PATH ?= ${HOME}/.mujoco/mjkey.txt
 
 
 build-test: TAG ?= rlworkgroup/garage-test
-build-test: docker/Dockerfile
+build-test: assert-docker-version docker/Dockerfile
 	docker build \
 		-f docker/Dockerfile \
 		--cache-from rlworkgroup/garage-test:latest \
@@ -134,7 +134,7 @@ ci-deploy-docker: assert-travis
 	docker push rlworkgroup/garage-ci
 
 build-ci: TAG ?= rlworkgroup/garage-ci:latest
-build-ci: docker/Dockerfile
+build-ci: assert-docker-version docker/Dockerfile
 	docker build \
 		--cache-from rlworkgroup/garage-ci:latest \
 		-f docker/Dockerfile \
@@ -143,7 +143,7 @@ build-ci: docker/Dockerfile
 		${BUILD_ARGS} .
 
 build-headless: TAG ?= rlworkgroup/garage-headless:latest
-build-headless: docker/Dockerfile
+build-headless: assert-docker-version docker/Dockerfile
 	docker build \
 		-f docker/Dockerfile \
 		--cache-from rlworkgroup/garage-headless:latest \
@@ -155,7 +155,7 @@ build-headless: docker/Dockerfile
 
 build-nvidia: TAG ?= rlworkgroup/garage-nvidia:latest
 build-nvidia: PARENT_IMAGE ?= nvidia/cuda:10.2-runtime-ubuntu18.04
-build-nvidia: docker/Dockerfile
+build-nvidia: assert-docker-version docker/Dockerfile
 	docker build \
 		-f docker/Dockerfile \
 		--cache-from rlworkgroup/garage-nvidia:latest \
@@ -215,6 +215,24 @@ run-nvidia: ensure-data-path-exists build-nvidia
 		${RUN_ARGS} \
 		rlworkgroup/garage-nvidia ${RUN_CMD}
 
+run-nvidia-headless: ## Run the Docker container for machines with NVIDIA GPUs
+run-nvidia-headless: ## Requires https://github.com/NVIDIA/nvidia-container-runtime and NVIDIA driver 440+
+run-nvidia-headless: CONTAINER_NAME ?= ''
+run-nvidia-headless: user ?= $$USER
+run-nvidia-headless: GPUS ?= "all"
+run-nvidia-headless: ensure-data-path-exists build-nvidia
+	docker run \
+		-it \
+		--rm \
+		--gpus $(GPUS) \
+		-v $(DATA_PATH)/$(CONTAINER_NAME):/home/$(user)/code/garage/data \
+		-e DISPLAY=$(DISPLAY) \
+		-e QT_X11_NO_MITSHM=1 \
+		-e MJKEY="$$(cat $(MJKEY_PATH))" \
+		--name $(CONTAINER_NAME) \
+		${RUN_ARGS} \
+		rlworkgroup/garage-nvidia ${RUN_CMD}
+
 # Checks that we are in a docker container
 assert-docker:
 	@test -f /proc/1/cgroup && /bin/grep -qa docker /proc/1/cgroup \
@@ -229,6 +247,11 @@ endif
 
 ensure-data-path-exists:
 	mkdir -p $(DATA_PATH)/$(CONTAINER_NAME) || { echo "Cannot create directory $(DATA_PATH)/$(CONTAINER_NAME)"; exit 1; }
+
+# Check that the docker version is 19.03 or higher
+assert-docker-version:
+	@[[ $(shell docker version -f "{{.Server.Version}}" | cut -d'.' -f 1) > 18 ]] \
+		|| { echo "You need docker 19.03 or higher to build garage"; exit 1; }
 
 # Help target
 # See https://marmelab.com/blog/2016/02/29/auto-documented-makefile.html
