@@ -55,10 +55,11 @@ class HERReplayBuffer(PathBuffer):
         goal_indexes = np.random.randint(transition_idx + 1,
                                          len(path['observations']),
                                          size=self._replay_k)
-        return [
-            goal['achieved_goal']
-            for goal in np.asarray(path['observations'])[goal_indexes]
-        ]
+        goal = np.empty(shape = [len(path['observations'][1,:]), self._replay_k])
+        for i in range(self._replay_k):
+            goal[:,i] = np.asarray(path['observations'][goal_indexes[i]][:])
+            
+        return goal
 
     def _flatten_dicts(self, path):
         for key in ['observations', 'next_observations']:
@@ -94,15 +95,13 @@ class HERReplayBuffer(PathBuffer):
             her_goals = self._sample_her_goals(path, idx)
 
             # create replay_k transitions using the HER goals
-            for goal in her_goals:
+            for goal in np.transpose(her_goals):
 
                 t_new = copy.deepcopy(transition)
-                a_g = t_new['next_observations']['achieved_goal']
+                a_g = t_new['next_observations']
 
                 t_new['rewards'] = np.array(self._reward_fn(a_g, goal, None))
-                t_new['observations']['desired_goal'] = goal
-                t_new['next_observations']['desired_goal'] = copy.deepcopy(
-                    goal)
+
                 t_new['terminals'] = np.array(False)
 
                 # flatten the observation dicts now that we're done with them
