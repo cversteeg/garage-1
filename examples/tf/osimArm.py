@@ -26,15 +26,15 @@ from garage.np.exploration_policies import AddOrnsteinUhlenbeckNoise
 from garage.tf.algos import DDPG
 from garage.tf.policies import ContinuousMLPPolicy
 from garage.tf.q_functions import ContinuousMLPQFunction
+from garage.replay_buffer import HERReplayBuffer
 
 from osim.env.arm import Arm2DVecEnv
-import tensorflow as tf
 
 from garage.np.exploration_policies import AddOrnsteinUhlenbeckNoise
 from garage.replay_buffer import PathBuffer
 
 @wrap_experiment
-def osimArm(ctxt=None, seed=1):
+def osimArm(ctxt, seed=1):
     """Train TRPO with CartPole-v1 environment.
 
     Args:
@@ -47,7 +47,7 @@ def osimArm(ctxt=None, seed=1):
     set_seed(seed)
     with LocalTFRunner(ctxt) as runner:
         
-        env = Arm2DVecEnv(visualize=False)
+        env = GarageEnv(Arm2DVecEnv(visualize=False))
         env.reset()
         
         policy = ContinuousMLPPolicy(env_spec=env.spec,
@@ -63,15 +63,22 @@ def osimArm(ctxt=None, seed=1):
                                     hidden_sizes=[64, 64],
                                     hidden_nonlinearity=tf.nn.relu)
 
-        replay_buffer = PathBuffer(capacity_in_transitions=int(1e6))
+        # replay_buffer = PathBuffer(capacity_in_transitions=int(1e6))
+
+        
+
+        replay_buffer = HERReplayBuffer(capacity_in_transitions=int(1e6),
+                                        replay_k=4,
+                                        reward_fn=env.compute_reward,
+                                        env_spec=env.spec)
 
         ddpg = DDPG(env_spec=env.spec,
                     policy=policy,
                     policy_lr=1e-4,
                     qf_lr=1e-3,
-                    max_path_length = 200,
                     qf=qf,
                     replay_buffer=replay_buffer,
+                    max_path_length=100,
                     steps_per_epoch=20,
                     target_update_tau=1e-2,
                     n_train_steps=50,
@@ -98,10 +105,7 @@ def osimArm(ctxt=None, seed=1):
         
 
         runner.setup(algo=ddpg, env=env)
-
-        runner.train(n_epochs=500, batch_size=100)
+        runner.train(n_epochs = 100,batch_size = 10)
         
-
-
-
-osimArm()
+        
+osimArm(seed =100)
