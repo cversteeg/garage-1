@@ -101,7 +101,6 @@ class HERReplayBuffer(PathBuffer):
                 a_g = t_new['next_observations']
 
                 t_new['rewards'] = np.array(self._reward_fn(a_g, goal, None))
-
                 t_new['terminals'] = np.array(False)
 
                 # flatten the observation dicts now that we're done with them
